@@ -18,7 +18,6 @@ sub _initialize_body {
 
     my $method_name = join "_" => (
         '_generate',
-        $self->accessor_type,
         'method',
         ($self->is_inline ? 'inline' : ())
     );
@@ -28,13 +27,13 @@ sub _initialize_body {
 
 ## generators
 
-sub generate_accessor_method {
+sub generate_method {
     Carp::cluck('The generate_accessor_method method has been made private.'
         . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_accessor_method;
+    shift->_generate_method;
 }
 
-sub _generate_accessor_method {
+sub _generate_method {
     my $attr = (shift)->associated_attribute;
     return sub {
         $attr->set_value($_[0], $_[1]) if scalar(@_) == 2;
@@ -42,68 +41,15 @@ sub _generate_accessor_method {
     };
 }
 
-sub generate_reader_method {
-    Carp::cluck('The generate_reader_method method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_reader_method;
-}
-
-sub _generate_reader_method {
-    my $attr = (shift)->associated_attribute;
-    return sub {
-        confess "Cannot assign a value to a read-only accessor" if @_ > 1;
-        $attr->get_value($_[0]);
-    };
-}
-
-sub generate_writer_method {
-    Carp::cluck('The generate_writer_method method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_writer_method;
-}
-
-sub _generate_writer_method {
-    my $attr = (shift)->associated_attribute;
-    return sub {
-        $attr->set_value($_[0], $_[1]);
-    };
-}
-
-sub generate_predicate_method {
-    Carp::cluck('The generate_predicate_method method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_predicate_method;
-}
-
-sub _generate_predicate_method {
-    my $attr = (shift)->associated_attribute;
-    return sub {
-        $attr->has_value($_[0])
-    };
-}
-
-sub generate_clearer_method {
-    Carp::cluck('The generate_clearer_method method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_clearer_method;
-}
-
-sub _generate_clearer_method {
-    my $attr = (shift)->associated_attribute;
-    return sub {
-        $attr->clear_value($_[0])
-    };
-}
-
 ## Inline methods
 
-sub generate_accessor_method_inline {
+sub generate_method_inline {
     Carp::cluck('The generate_accessor_method_inline method has been made private.'
         . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_accessor_method_inline;
+    shift->_generate_method_inline;
 }
 
-sub _generate_accessor_method_inline {
+sub _generate_method_inline {
     my $self          = shift;
     my $attr          = $self->associated_attribute;
     my $attr_name     = $attr->name;
@@ -118,99 +64,6 @@ sub _generate_accessor_method_inline {
         . '}'
     );
     confess "Could not generate inline accessor because : $e" if $e;
-
-    return $code;
-}
-
-sub generate_reader_method_inline {
-    Carp::cluck('The generate_reader_method_inline method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_reader_method_inline;
-}
-
-sub _generate_reader_method_inline {
-    my $self          = shift;
-    my $attr          = $self->associated_attribute;
-    my $attr_name     = $attr->name;
-    my $meta_instance = $attr->associated_class->instance_metaclass;
-
-     my ( $code, $e ) = $self->_eval_closure(
-         {},
-        'sub {'
-        . 'confess "Cannot assign a value to a read-only accessor" if @_ > 1;'
-        . $meta_instance->inline_get_slot_value('$_[0]', $attr_name)
-        . '}'
-    );
-    confess "Could not generate inline reader because : $e" if $e;
-
-    return $code;
-}
-
-sub generate_writer_method_inline {
-    Carp::cluck('The generate_writer_method_inline method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_writer_method_inline;
-}
-
-sub _generate_writer_method_inline {
-    my $self          = shift;
-    my $attr          = $self->associated_attribute;
-    my $attr_name     = $attr->name;
-    my $meta_instance = $attr->associated_class->instance_metaclass;
-
-    my ( $code, $e ) = $self->_eval_closure(
-        {},
-        'sub {'
-        . $meta_instance->inline_set_slot_value('$_[0]', $attr_name, '$_[1]')
-        . '}'
-    );
-    confess "Could not generate inline writer because : $e" if $e;
-
-    return $code;
-}
-
-sub generate_predicate_method_inline {
-    Carp::cluck('The generate_predicate_method_inline method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_predicate_method_inline;
-}
-
-sub _generate_predicate_method_inline {
-    my $self          = shift;
-    my $attr          = $self->associated_attribute;
-    my $attr_name     = $attr->name;
-    my $meta_instance = $attr->associated_class->instance_metaclass;
-
-    my ( $code, $e ) = $self->_eval_closure(
-        {},
-       'sub {'
-       . $meta_instance->inline_is_slot_initialized('$_[0]', $attr_name)
-       . '}'
-    );
-    confess "Could not generate inline predicate because : $e" if $e;
-
-    return $code;
-}
-
-sub generate_clearer_method_inline {
-    Carp::cluck('The generate_clearer_method_inline method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_generate_clearer_method_inline;
-}
-
-sub _generate_clearer_method_inline {
-    my $self          = shift;
-    my $attr          = $self->associated_attribute;
-    my $attr_name     = $attr->name;
-    my $meta_instance = $attr->associated_class->instance_metaclass;
-
-    my ( $code, $e ) = $self->_eval_closure(
-        {},
-        'sub {'
-        . $meta_instance->inline_deinitialize_slot('$_[0]', $attr_name)
-        . '}'
-    );
-    confess "Could not generate inline clearer because : $e" if $e;
 
     return $code;
 }
