@@ -11,55 +11,7 @@ our $VERSION   = '0.88';
 $VERSION = eval $VERSION;
 our $AUTHORITY = 'cpan:STEVAN';
 
-use base 'Class::MOP::Method::Generated';
-
-sub new {
-    my $class   = shift;
-    my %options = @_;
-
-    (exists $options{attribute})
-        || confess "You must supply an attribute to construct with";
-
-    (exists $options{accessor_type})
-        || confess "You must supply an accessor_type to construct with";
-
-    (blessed($options{attribute}) && $options{attribute}->isa('Class::MOP::Attribute'))
-        || confess "You must supply an attribute which is a 'Class::MOP::Attribute' instance";
-
-    ($options{package_name} && $options{name})
-        || confess "You must supply the package_name and name parameters $Class::MOP::Method::UPGRADE_ERROR_TEXT";
-
-    my $self = $class->_new(\%options);
-
-    # we don't want this creating
-    # a cycle in the code, if not
-    # needed
-    weaken($self->{'attribute'});
-
-    return $self;
-}
-
-sub _new {
-    my $class = shift;
-    my $options = @_ == 1 ? $_[0] : {@_};
-
-    $options->{is_inline} ||= 0;
-
-    return bless $options, $class;
-}
-
-## accessors
-
-sub associated_attribute { (shift)->{'attribute'}     }
-sub accessor_type        { (shift)->{'accessor_type'} }
-
-## factory
-
-sub initialize_body {
-    Carp::cluck('The initialize_body method has been made private.'
-        . " The public version is deprecated and will be removed in a future release.\n");
-    shift->_initialize_body;
-}
+use base 'Class::MOP::Method::Attribute';
 
 sub _initialize_body {
     my $self = shift;
@@ -265,6 +217,7 @@ sub _generate_clearer_method_inline {
 
 1;
 
+# XXX - UPDATE DOCS
 __END__
 
 =pod
